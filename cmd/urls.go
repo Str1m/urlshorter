@@ -16,15 +16,13 @@ type OriginURL struct {
 	URL string `json:"url"`
 }
 
-func (app *application) createShortURL(URL OriginURL) ShortURL {
-	url := URL.URL + strconv.Itoa(rand.Int())
+func (app *application) createShortURL(URL string) string {
+	url := URL + strconv.Itoa(rand.Int())
 	h := crypto.SHA3_256.New()
 	h.Write([]byte(url))
 	hash := h.Sum(nil)
 	encoded := base64.RawURLEncoding.EncodeToString(hash)[:6]
-	app.storage[encoded] = URL.URL
-	app.saveFile()
-	return ShortURL{URL: encoded}
+	return encoded
 }
 
 func getShortURL(path string) string {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"net/http"
@@ -8,27 +9,28 @@ import (
 )
 
 type application struct {
-	InfoLog     *log.Logger
-	ErrorLog    *log.Logger
-	storage     map[string]string
-	storagePath string
+	InfoLog  *log.Logger
+	ErrorLog *log.Logger
+	storage  *RedisStore
+	ctx      context.Context
 }
 
 func main() {
 	addr := *flag.String("addr", ":8080", "HTTP network address")
-	fp := *flag.String("stor", "./storage.json", "JSON file path")
+	redisAddr := *flag.String("redis", "localhost:6379", "Redis addres")
 	flag.Parse()
 
-	storage := make(map[string]string)
+	var ctx = context.Background()
+	storage := NewRedisStore(redisAddr)
 
 	infoLog := log.New(os.Stdout, "INFO:\t ", log.Ldate)
 	errorLog := log.New(os.Stderr, "ERROR:\t", log.Ldate|log.Lshortfile)
 
 	app := &application{
-		InfoLog:     infoLog,
-		ErrorLog:    errorLog,
-		storage:     storage,
-		storagePath: fp,
+		InfoLog:  infoLog,
+		ErrorLog: errorLog,
+		storage:  storage,
+		ctx:      ctx,
 	}
 
 	server := http.Server{

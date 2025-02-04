@@ -15,9 +15,15 @@ func (app *application) GetURL(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error decoding JSON", http.StatusBadRequest)
 		return
 	}
-	shortURL := app.createShortURL(url)
+	shortURL, err := app.SaveURL(url.URL)
+	if err != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		app.ErrorLog.Println(err)
+		return
+	}
+	jsonURL := ShortURL{shortURL}
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(shortURL); err != nil {
+	if err := json.NewEncoder(w).Encode(jsonURL); err != nil {
 		http.Error(w, "Error decoding JSON", http.StatusBadRequest)
 		return
 	}
@@ -33,10 +39,16 @@ func (app *application) SendShortURL(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid short URL", http.StatusBadRequest)
 		return
 	}
-	originURL, flag := app.storage[code]
-	if !flag {
-		http.Error(w, "Short URL not found", http.StatusNotFound)
+	originURL, err := app.FindOriginalURL(code)
+	if err != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		app.ErrorLog.Println(err)
 		return
 	}
+	//originURL, flag := app.storage[code]
+	//if !flag {
+	//	http.Error(w, "Short URL not found", http.StatusNotFound)
+	//	return
+	//}
 	http.Redirect(w, r, originURL, http.StatusFound)
 }
