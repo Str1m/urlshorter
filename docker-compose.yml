@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres
+    container_name: postgres_db_urlshorter
+    restart: always
+    environment:
+      POSTGRES_USER: $STORAGE.USER
+      POSTGRES_PASSWORD: $STORAGE.PASSWORD
+      POSTGRES_DB: $STORAGE.DBNAME
+    ports:
+      - "$STORAGE.PORT:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
